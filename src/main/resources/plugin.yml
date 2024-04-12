@@ -1,0 +1,8 @@
+name: LibSerializable
+version: '${project.version}'
+main: org.libserializable.LibSerializable
+api-version: '1.20'
+prefix: libserializable
+load: STARTUP
+authors: [Nicksarmor]
+description: A library for handling the serialization of entities
