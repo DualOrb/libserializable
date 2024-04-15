@@ -11,11 +11,12 @@ entityBytes = serializer.toBytes(entity)
 Deserializer deserializer = new Deserializer()
 deserializer.spawnEntity(location, entityBytes)
 ```
-_Note to self: May want to make it an injected service with singleton pattern_
 
 ### How it works
-Defines a tree hierarchy of classes that are wrappers to the spigot interfaces. The uses Java Serialization / Deserialization to convert to bytes, or GSON to convert to JSON.
+Uses reflection to map each super interface (if one exists) to a defined method in the target class, from which for each entity passed to the serializer will process with only the interfaces it implements.
+
+This is a more efficient solution than wrapping each class, because we only have to do one per interface, and the interfaces are less likely to change structure than the entity itself.
 
 
 
-## BETA
+## Work in Progress
