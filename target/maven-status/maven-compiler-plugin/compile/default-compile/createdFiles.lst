@@ -1,0 +1,7 @@
+org\libserializable\livingentities\attributes\Ageable.class
+org\libserializable\livingentities\attributes\SAttribute.class
+org\libserializable\misc\SItemStack.class
+org\libserializable\Serializer.class
+org\libserializable\LibSerializable.class
+org\libserializable\Deserializer.class
+org\libserializable\livingentities\SeEntity.class
