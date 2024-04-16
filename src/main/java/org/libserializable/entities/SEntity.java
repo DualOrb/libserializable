@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Zombie;
 import org.libserializable.entities.livingentities.SLivingEntity;
 
 import java.lang.reflect.InvocationTargetException;
@@ -35,36 +37,27 @@ public abstract class SEntity {
         LivingEntity livingEntity = (LivingEntity) entity;
 
         // Get all interfaces implemented by the object's class
-        Class<?>[] interfaces = livingEntity.getClass().getInterfaces();
+        Class<?> OGinterface = livingEntity.getClass().getInterfaces()[0];
 
         // Create a map to store the interfaces and their superinterfaces
-        Map<Class<?>, Set<Class<?>>> interfaceMap = new HashMap<>();
-
-        // Add the interfaces and their superinterfaces to the map
-        for (Class<?> interf : interfaces) {
-            // Check if the interface is a subinterface of LivingEntity
-            if (LivingEntity.class.isAssignableFrom(interf) && Modifier.isInterface(interf.getModifiers())) {
-                Set<Class<?>> allSuperInterfaces = getAllSuperInterfaces(interf);
-                interfaceMap.put(interf, allSuperInterfaces);
-            }
-        }
+        Set<Class<?>> superInterfaces = new HashSet<>(getAllExtendedOrImplementedTypesRecursively(OGinterface));
+        System.out.println(OGinterface);
+        System.out.println(superInterfaces);
 
         // Map each interface to a method in this class
         interfaceMethodMap = new HashMap<>();
         try {
             Method[] methods = targetClass.getDeclaredMethods();
-            for (Set<Class<?>> superInterfaces : interfaceMap.values()) {
-                for (Class<?> interf : superInterfaces) {
-                    for (Method method : methods) {
-                        if (method.getName().equals("set" + interf.getSimpleName())) {
-                            interfaceMethodMap.put(method, interf);
-                            break;
-                        } else if (method.getName().equals("get" + interf.getSimpleName())) {
-                            interfaceMethodMap.put(method, interf);
-                            break;
-                        }
-
+            for (Class<?> interf : superInterfaces) {
+                for (Method method : methods) {
+                    if (method.getName().equals("set" + interf.getSimpleName())) {
+                        interfaceMethodMap.put(method, interf);
+                        break;
+                    } else if (method.getName().equals("get" + interf.getSimpleName())) {
+                        interfaceMethodMap.put(method, interf);
+                        break;
                     }
+
                 }
             }
         } catch (SecurityException e) {
@@ -73,25 +66,41 @@ public abstract class SEntity {
     }
 
     // Helper method to get all superinterfaces of an interface recursively
-    private static Set<Class<?>> getAllSuperInterfaces(Class<?> interf) {
-        Set<Class<?>> allSuperInterfaces = new HashSet<>();
-        Queue<Class<?>> queue = new LinkedList<>();
-        queue.add(interf);
+    public static Set<Class<?>> getAllExtendedOrImplementedTypesRecursively(Class<?> clazz) {
+        List<Class<?>> res = new ArrayList<>();
 
-        while (!queue.isEmpty()) {
-            Class<?> currentInterface = queue.poll();
-            Class<?>[] superInterfaces = currentInterface.getInterfaces();
-            for (Class<?> superInterface : superInterfaces) {
-                if (LivingEntity.class.isAssignableFrom(superInterface) &&
-                        Modifier.isInterface(superInterface.getModifiers()) &&
-                        !allSuperInterfaces.contains(superInterface)) {
-                    allSuperInterfaces.add(superInterface);
-                    queue.add(superInterface);
+        do {
+            res.add(clazz);
+
+            // First, add all the interfaces implemented by this class
+            Class<?>[] interfaces = clazz.getInterfaces();
+            if (interfaces.length > 0) {
+                res.addAll(Arrays.asList(interfaces));
+
+                for (Class<?> interfaze : interfaces) {
+                    res.addAll(getAllExtendedOrImplementedTypesRecursively(interfaze));
                 }
             }
-        }
 
-        return allSuperInterfaces;
+            // Add the super class
+            Class<?> superClass = clazz.getSuperclass();
+
+            // Interfaces does not have java,lang.Object as superclass, they have null, so break the cycle and return
+            if (superClass == null) {
+                break;
+            }
+
+            // Now inspect the superclass
+            clazz = superClass;
+        } while (!"java.lang.Object".equals(clazz.getCanonicalName()));
+
+        return new HashSet<Class<?>>(res);
+    }
+
+    /*
+        Default constructor to be used when deserializing into an entity
+     */
+    public SEntity() {
 
     }
 
@@ -117,5 +126,13 @@ public abstract class SEntity {
      */
     public String toString() {
         return jsonRepresentation.toString();
+    }
+
+    /**
+     * Returns the entity object that is either being serialized or has been spawned and deserialized
+     * @return
+     */
+    public Entity getEntity() {
+        return this.entity;
     }
 }

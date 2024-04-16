@@ -14,10 +14,9 @@ public final class LibSerializable extends JavaPlugin {
     public void onEnable() {
         // Test for development server
         World world = Bukkit.getWorlds().get(0);
-        Horse horse = (Horse) world.spawnEntity(world.getSpawnLocation(), EntityType.HORSE);
+        Zombie zombie = (Zombie) world.spawnEntity(world.getSpawnLocation(), EntityType.ZOMBIE);
         Serializer serializer = new Serializer();
-        serializer.serialize(horse);   // Upcasts to living entity
-
+        serializer.serialize(zombie);   // Upcasts to living entity
     }
 
     @Override

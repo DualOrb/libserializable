@@ -1,7 +1,10 @@
 C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\LibSerializable.java
 C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\entities\livingentities\SLivingEntityAttributes.java
 C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\Serializer.java
+C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\entities\livingentities\records\SAgeable.java
 C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\misc\SItemStack.java
 C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\entities\livingentities\SLivingEntity.java
 C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\Deserializer.java
 C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\entities\SEntity.java
+C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\entities\livingentities\records\SNameable.java
+C:\Users\Owner\OneDrive\Desktop\Minecraft\LibSerializable\src\main\java\org\libserializable\entities\livingentities\records\SDamageable.java
