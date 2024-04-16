@@ -1,8 +1,0 @@
-name: LibSerializable
-version: '1.0-SNAPSHOT'
-main: org.libserializable.LibSerializable
-api-version: '1.20'
-prefix: libserializable
-load: POSTWORLD
-authors: [Nicksarmor]
-description: A library for handling the serialization of entities
