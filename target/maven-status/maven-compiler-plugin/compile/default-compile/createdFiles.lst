@@ -3,10 +3,8 @@ org\libserializable\entities\livingentities\records\SEquipment.class
 org\libserializable\misc\SItemStack.class
 org\libserializable\LibSerializable.class
 org\libserializable\entities\livingentities\records\SAttributable.class
-org\libserializable\entities\livingentities\SLivingEntity$1.class
 org\libserializable\entities\livingentities\records\SEntityType.class
 org\libserializable\entities\livingentities\records\SDamageable.class
 org\libserializable\Serializer.class
-org\libserializable\entities\livingentities\SLivingEntity$2.class
 org\libserializable\entities\livingentities\records\SAgeable.class
 org\libserializable\Deserializer.class

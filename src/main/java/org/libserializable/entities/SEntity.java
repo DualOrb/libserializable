@@ -1,17 +1,12 @@
 package org.libserializable.entities;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Zombie;
-import org.libserializable.entities.livingentities.SLivingEntity;
-
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.logging.Level;
 
 public abstract class SEntity {
 
@@ -22,27 +17,22 @@ public abstract class SEntity {
     /**
      * Takes in an entity, gets all super interfaces, and creates a mapping of the methods in
      * target class named "handle<InterfaceSimpleName>"
-     *
+     * <p>
      * In this way, each target class can handle interface methods how they want for serialization
-     * @param entity
-     * @param targetClass
      */
     public SEntity(Entity entity, Class targetClass) {
         // TODO Handle this more gracefully
 
-        if(!(entity instanceof LivingEntity)) {
+        if(!(entity instanceof LivingEntity livingEntity)) {
             throw new IllegalArgumentException("Non-living entities are not supported");
         }
         this.entity = entity;
-        LivingEntity livingEntity = (LivingEntity) entity;
 
         // Get all interfaces implemented by the object's class
         Class<?> OGinterface = livingEntity.getClass().getInterfaces()[0];
 
         // Create a map to store the interfaces and their superinterfaces
         Set<Class<?>> superInterfaces = new HashSet<>(getAllExtendedOrImplementedTypesRecursively(OGinterface));
-        System.out.println(OGinterface);
-        System.out.println(superInterfaces);
 
         // Map each interface to a method in this class
         interfaceMethodMap = new HashMap<>();
@@ -61,19 +51,22 @@ public abstract class SEntity {
                 }
             }
         } catch (SecurityException e) {
-            e.printStackTrace();
+            Bukkit.getLogger().log(Level.WARNING, Arrays.toString(e.getStackTrace()));
         }
     }
 
-    // Helper method to get all superinterfaces of an interface recursively
-    public static Set<Class<?>> getAllExtendedOrImplementedTypesRecursively(Class<?> clazz) {
+    /**
+     * Helper method to get all super classes or super interfaces of a given class/interface
+     * @param ogClass Class
+     */
+    public static Set<Class<?>> getAllExtendedOrImplementedTypesRecursively(Class<?> ogClass) {
         List<Class<?>> res = new ArrayList<>();
 
         do {
-            res.add(clazz);
+            res.add(ogClass);
 
             // First, add all the interfaces implemented by this class
-            Class<?>[] interfaces = clazz.getInterfaces();
+            Class<?>[] interfaces = ogClass.getInterfaces();
             if (interfaces.length > 0) {
                 res.addAll(Arrays.asList(interfaces));
 
@@ -83,7 +76,7 @@ public abstract class SEntity {
             }
 
             // Add the super class
-            Class<?> superClass = clazz.getSuperclass();
+            Class<?> superClass = ogClass.getSuperclass();
 
             // Interfaces does not have java,lang.Object as superclass, they have null, so break the cycle and return
             if (superClass == null) {
@@ -91,18 +84,12 @@ public abstract class SEntity {
             }
 
             // Now inspect the superclass
-            clazz = superClass;
-        } while (!"java.lang.Object".equals(clazz.getCanonicalName()));
+            ogClass = superClass;
+        } while (!"java.lang.Object".equals(ogClass.getCanonicalName()));
 
-        return new HashSet<Class<?>>(res);
+        return new HashSet<>(res);
     }
 
-    /*
-        Default constructor to be used when deserializing into an entity
-     */
-    public SEntity() {
-
-    }
 
 
 
@@ -111,7 +98,7 @@ public abstract class SEntity {
      * @return byte[]
      */
     public byte[] toBytes() {
-        return jsonRepresentation.toString().getBytes();
+        return this.toString().getBytes();
     }
 
     /**
@@ -130,7 +117,7 @@ public abstract class SEntity {
 
     /**
      * Returns the entity object that is either being serialized or has been spawned and deserialized
-     * @return
+     * @return the Entity object that was deserialized and spawned in the world
      */
     public Entity getEntity() {
         return this.entity;
