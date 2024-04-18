@@ -1,8 +1,8 @@
-package org.libserializable;
+package org.libserializable.api;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.libserializable.entities.livingentities.SLivingEntity;
+import org.libserializable.impl.entities.SLivingEntity;
 
 import javax.annotation.Nullable;
 

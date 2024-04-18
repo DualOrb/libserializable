@@ -5,6 +5,8 @@ import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Zombie;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.libserializable.api.Deserializer;
+import org.libserializable.api.Serializer;
 
 public final class LibSerializable extends JavaPlugin {
 
@@ -16,10 +18,12 @@ public final class LibSerializable extends JavaPlugin {
         World world = Bukkit.getWorlds().get(0);
         Zombie zombie = (Zombie) world.spawnEntity(world.getSpawnLocation(), EntityType.ZOMBIE);
         Serializer serializer = new Serializer();
-        serializer.serialize(zombie);   // Upcasts to living entity
+        String stringified = serializer.serialize(zombie);   // Upcasts to living entity
+
+        System.out.println(stringified);
 
         Deserializer deserializer = new Deserializer();
-        deserializer.spawn(testData, world.getSpawnLocation());
+        deserializer.spawn(stringified, world.getSpawnLocation());
     }
 
     @Override

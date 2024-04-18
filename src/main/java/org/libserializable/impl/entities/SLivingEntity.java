@@ -1,4 +1,4 @@
-package org.libserializable.entities.livingentities;
+package org.libserializable.impl.entities;
 
 import com.google.gson.JsonObject;
 import org.bukkit.Bukkit;
@@ -8,9 +8,8 @@ import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.libserializable.entities.SEntity;
+import org.libserializable.impl.SEntity;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -18,7 +17,9 @@ import java.util.*;
 import java.util.logging.Level;
 
 import com.google.gson.Gson;
-import org.libserializable.entities.livingentities.records.*;
+import org.libserializable.impl.interfaceRecords.*;
+
+import static org.libserializable.util.InterfaceHandler.setAllInterfaceMethods;
 
 /**
  * An internal serializable representation of a living entity
@@ -28,29 +29,7 @@ public class SLivingEntity extends SEntity {
     public SLivingEntity(LivingEntity livingEntity) {
         super(livingEntity, SLivingEntity.class);
 
-        Gson gson = new Gson();
-
-        JsonObject serializedEntity = new JsonObject();
-
-        // Serialize type separately since it's an enum
-        serializedEntity.add("EntityType", gson.toJsonTree(new SEntityType(entity.getType())));
-
-        // Serialize each interface as a JSON object
-        JsonObject attributes = new JsonObject();
-        for (Map.Entry<Method, Class<?>> entry : interfaceMethodMap.entrySet()) {
-            try {
-                if(entry.getKey().getName().startsWith("get")) {
-                    Object record = entry.getKey().invoke(this);
-                    JsonObject recordJson = gson.toJsonTree(record).getAsJsonObject();
-                    attributes.add(entry.getValue().getSimpleName(), recordJson);
-                }
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                Bukkit.getLogger().log(Level.WARNING, Arrays.toString(e.getStackTrace()));
-            }
-        }
-        serializedEntity.add("Attributes", attributes);
-
-        this.jsonRepresentation = serializedEntity;
+        this.jsonRepresentation = createJsonRepresentation();
     }
 
     /**
@@ -60,19 +39,32 @@ public class SLivingEntity extends SEntity {
      */
     public SLivingEntity(JsonObject obj, Location location) {
 
-        super(Objects.requireNonNull(location.getWorld()).spawnEntity(location, new Gson().fromJson(obj.get("EntityType"), SEntityType.class).type()), LivingEntity.class);
+        super(Objects.requireNonNull(location.getWorld()).spawnEntity(location, new Gson().fromJson(obj.get("EntityType"), SEntityType.class).type()), SLivingEntity.class);
 
-        // Go through all the other attributes and deserialize
+        // setAllInterfaceMethods(this.interfaceMethodMap, this);
+    }
+
+    @Override
+    protected JsonObject createJsonRepresentation() {
+        Gson gson = new Gson();
+
+        JsonObject serializedEntity = new JsonObject();
+        serializedEntity.add("EntityType", gson.toJsonTree(new SEntityType(entity.getType())));
+        JsonObject attributes = new JsonObject();
         for (Map.Entry<Method, Class<?>> entry : interfaceMethodMap.entrySet()) {
             try {
-                if(entry.getKey().getName().startsWith("set")) {
-                    entry.getKey().invoke(this);
+                if (entry.getKey().getName().startsWith("get")) {
+                    Object record = entry.getKey().invoke(this);
+                    JsonObject recordJson = gson.toJsonTree(record).getAsJsonObject();
+                    attributes.add(entry.getValue().getSimpleName(), recordJson);
                 }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                Bukkit.getLogger().log(Level.WARNING, Arrays.toString(e.getStackTrace()));
+                throw new RuntimeException(e);
             }
-
         }
+        serializedEntity.add("Attributes", attributes);
+
+        return serializedEntity;
     }
 
     /*
@@ -113,6 +105,7 @@ public class SLivingEntity extends SEntity {
     }
 
     private void setDamageable() {
+        Damageable damageable = (Damageable) this.entity;
 
     }
 

@@ -1,4 +1,4 @@
-package org.libserializable.entities.livingentities.records;
+package org.libserializable.impl.interfaceRecords;
 
 import org.bukkit.attribute.Attribute;
 

@@ -1,3 +1,3 @@
-package org.libserializable.entities.livingentities.records;
+package org.libserializable.impl.interfaceRecords;
 
 public record SDamageable(double health, double absorptionAmount) {}

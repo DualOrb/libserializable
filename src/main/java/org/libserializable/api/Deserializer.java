@@ -1,12 +1,10 @@
-package org.libserializable;
+package org.libserializable.api;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.libserializable.entities.livingentities.SLivingEntity;
+import org.libserializable.impl.entities.SLivingEntity;
 
 public class Deserializer {
 
