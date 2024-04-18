@@ -21,14 +21,6 @@ public final class LibSerializable extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Load record classes
-        String basePackage = "org.libserializable.impl.interfaceRecords"; // Replace with your base package
-        try {
-            List<Class<?>> annotatedClasses = loadClassesWithAnnotation(basePackage, HandleInterface.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
         // Test for development server
         World world = Bukkit.getWorlds().get(0);
         Zombie zombie = (Zombie) world.spawnEntity(world.getSpawnLocation(), EntityType.ZOMBIE);
