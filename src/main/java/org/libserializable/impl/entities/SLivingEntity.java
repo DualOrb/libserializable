@@ -1,35 +1,27 @@
 package org.libserializable.impl.entities;
 
 import com.google.gson.JsonObject;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Nameable;
-import org.bukkit.attribute.Attributable;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
-import org.jetbrains.annotations.NotNull;
 import org.libserializable.impl.SEntity;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.logging.Level;
 
 import com.google.gson.Gson;
 import org.libserializable.impl.interfaceRecords.*;
+import org.libserializable.util.enums.ActionType;
 
-import static org.libserializable.util.InterfaceHandler.setAllInterfaceMethods;
+import static org.libserializable.util.InterfaceHandler.generateInterfaceMethodMap;
 
 /**
  * An internal serializable representation of a living entity
  */
-public class SLivingEntity extends SEntity {
+public class SLivingEntity extends SEntity <LivingEntity> {
 
     public SLivingEntity(LivingEntity livingEntity) {
-        super(livingEntity, SLivingEntity.class);
-
-        this.jsonRepresentation = createJsonRepresentation();
+        super(livingEntity);
     }
 
     /**
@@ -38,10 +30,13 @@ public class SLivingEntity extends SEntity {
      * @param location the location in the world to spawn
      */
     public SLivingEntity(JsonObject obj, Location location) {
+        super((LivingEntity) Objects.requireNonNull(location.getWorld()).spawnEntity(location, new Gson().fromJson(obj.get("EntityType"), SEntityType.class).type()));
+    }
 
-        super(Objects.requireNonNull(location.getWorld()).spawnEntity(location, new Gson().fromJson(obj.get("EntityType"), SEntityType.class).type()), SLivingEntity.class);
+    @Override
+    protected Map<Method, Class<?>> setInterfaceMethodMap() {
 
-        // setAllInterfaceMethods(this.interfaceMethodMap, this);
+        return generateInterfaceMethodMap(this.getEntity(), ActionType.SET, ActionType.GET);
     }
 
     @Override
@@ -51,15 +46,17 @@ public class SLivingEntity extends SEntity {
         JsonObject serializedEntity = new JsonObject();
         serializedEntity.add("EntityType", gson.toJsonTree(new SEntityType(entity.getType())));
         JsonObject attributes = new JsonObject();
+
         for (Map.Entry<Method, Class<?>> entry : interfaceMethodMap.entrySet()) {
             try {
                 if (entry.getKey().getName().startsWith("get")) {
-                    Object record = entry.getKey().invoke(this);
+
+                    Record record = (Record) entry.getKey().invoke(null, this.entity);
                     JsonObject recordJson = gson.toJsonTree(record).getAsJsonObject();
                     attributes.add(entry.getValue().getSimpleName(), recordJson);
                 }
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
         serializedEntity.add("Attributes", attributes);
@@ -67,110 +64,4 @@ public class SLivingEntity extends SEntity {
         return serializedEntity;
     }
 
-    /*
-        Handled Interfaces Section
-
-        Uses reflection to assign these methods to an interface.
-            Each get method should return a serializable value
-            Each set method should apply the values passed (Same format as it was given) to a given entity
-     */
-
-    /**
-     * Ageable interface
-     * - int Age
-     * - bool isAdult
-     * @return SAgeable
-     */
-    @NotNull
-    private SAgeable getAgeable() {
-        Ageable ageable = (Ageable)this.entity;
-        return new SAgeable(ageable.getAge(), ageable.isAdult());
-    }
-
-    private void setAgeable() {
-        Ageable ageable = (Ageable)this.entity;
-        ageable.setAdult();
-    }
-
-    /**
-     * Damageable interface
-     * - double health
-     * - double absorption
-     * @return SDamageable
-     */
-    @NotNull
-    private SDamageable getDamageable() {
-        Damageable damageable = (Damageable) this.entity;
-        return new SDamageable(damageable.getHealth(), damageable.getAbsorptionAmount());
-    }
-
-    private void setDamageable() {
-        Damageable damageable = (Damageable) this.entity;
-
-    }
-
-    /**
-     * Attributable interface
-     * - hashmap with values for all non-null attributes
-     * @return SAttributable
-     */
-    @NotNull
-    private SAttributable getAttributable() {
-        Attributable attributable = (Attributable) entity;
-        Map<Attribute, Double> attributes = new HashMap<>();
-        // Just load up a map with all the attributes
-        for(Attribute attribute : Attribute.values()) {
-            AttributeInstance a = attributable.getAttribute(attribute);
-            if(a == null) continue;
-
-            attributes.put(attribute, a.getBaseValue());
-        }
-
-        return new SAttributable(attributes);
-    }
-
-    private void setAttributable() {
-
-    }
-
-    /**
-     * Nameable Interface
-     * - String name
-     *
-     * @return SNameable
-     */
-    @NotNull
-    private SNameable getNameable() {
-        Nameable nameable = entity;
-        return new SNameable(nameable.getCustomName());
-    }
-
-    private void setNameable() {
-
-    }
-
-    /**
-     * Handles serialization that is not directly handled by an interface (i.e. inventories)
-     * @return
-     */
-//    @Nullable
-//    public SEquipment setLivingEntity() {
-//        // TODO implement item serialization and deserialization + inventory serialization
-////        LivingEntity livingEntity = (LivingEntity) entity;
-////        ItemStack[] armourContents = Objects.requireNonNull(livingEntity.getEquipment()).getArmorContents();
-////        if(armourContents == null) {
-////            return null;
-////        } else {
-////            return new SEquipment(armourContents);
-////        }
-//        return null;
-//    }
-
-//    public void getLivingEntity() {
-//
-//    }
-
-
 }
-
-

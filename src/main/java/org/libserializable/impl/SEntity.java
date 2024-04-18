@@ -8,15 +8,24 @@ import org.libserializable.impl.entities.SLivingEntity;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static org.libserializable.util.InterfaceHandler.generateInterfaceMethodMap;
-
-public abstract class SEntity {
+public abstract class SEntity <T extends Entity> {
 
     protected Map<Method, Class<?>> interfaceMethodMap;
     protected JsonObject jsonRepresentation;
-    protected Entity entity;
+    protected T entity;
 
+    /**
+     * Creates the interface - method mapping for serialization
+     */
+    protected abstract Map<Method, Class<?>> setInterfaceMethodMap();
+
+    /**
+     * Creates a json representation of the entity
+     * @return
+     */
     protected abstract JsonObject createJsonRepresentation();
+
+
 
 
     /**
@@ -25,16 +34,13 @@ public abstract class SEntity {
      * <p>
      * In this way, each target class can handle interface methods how they want for serialization
      * @param entity The specific entity (zombie, cobblestone, etc) to be serialized
-     * @param targetClass The target class to be searched for reflection methods
-     * @param <T>
      */
-    public <T extends Entity> SEntity(T entity, Class<?> targetClass) {
+    public SEntity(T entity) {
         // TODO Handle this more gracefully
 
         this.entity = entity;
-
-        this.interfaceMethodMap = generateInterfaceMethodMap(targetClass, entity, Arrays.asList("set", "get"));
-
+        this.interfaceMethodMap = setInterfaceMethodMap();
+        this.jsonRepresentation = createJsonRepresentation();
     }
 
 

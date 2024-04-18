@@ -1,12 +1,19 @@
 package org.libserializable.util;
 
-import org.bukkit.Bukkit;
+import org.libserializable.annotations.HandleInterface;
 import org.libserializable.impl.SEntity;
+import org.libserializable.util.enums.ActionType;
+import org.reflections.Reflections;
+import org.reflections.scanners.MethodAnnotationsScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.logging.Level;
+
+import static org.libserializable.annotations.HandleInterface.AnnotationUtils.getMethodsByAction;
 
 /**
  * A class handling all methods related to our implementation of reflection requiring handling of interfaces
@@ -17,58 +24,26 @@ public class InterfaceHandler {
 
     /**
      * From a given object, get all superclasses / superinterfaces and create a map of "Method(<prefixInterfaceName>,InterfaceName)
-     * @param targetClass The class which should be searched for method implementations
      * @param instance The instance object to generate the tree of superclasses/interfaces. should be a specific type of entity such as <zombie> for example
-     * @param prefixes A list of Strings which prefix each method to be found
      * @return A mapping of the method to each interface
      */
-    public static <T> Map<Method, Class<?>> generateInterfaceMethodMap(Class<?> targetClass, T instance, List<String> prefixes) {
+    public static <T> Map<Method, Class<?>> generateInterfaceMethodMap(T instance, ActionType... actionTypes) {
         Map<Method, Class<?>> interfaceMethodMap = new HashMap<>();
 
-        // Get all interfaces implemented by the object's class
-        Class<?>[] interfaces = instance.getClass().getInterfaces();
+        String recordsPackage = "org.libserializable.impl.interfaceRecords";
+        Set<Class<?>> superclasses = getAllExtendedOrImplementedTypesRecursively(instance.getClass());
 
-        for (Class<?> OGinterface : interfaces) {
-
-            // Create a set to store the superinterfaces
-            Set<Class<?>> superInterfaces = getAllExtendedOrImplementedTypesRecursively(OGinterface);
-            // Map each interface method to a method in the target class
-            try {
-                Method[] methods = targetClass.getDeclaredMethods();
-                for (Class<?> interf : superInterfaces) {
-                    for (Method method : methods) {
-                        for (String prefix : prefixes) {
-                            if (method.getName().startsWith(prefix + interf.getSimpleName())) {
-                                interfaceMethodMap.put(method, interf);
-                                break;
-                            }
-                        }
-                    }
-                }
-            } catch (SecurityException e) {
-                throw new RuntimeException(e);
+        // Retrieve annotated methods from the interfaceRecords package for each specified ActionType
+        for(Class<?> clazz: superclasses) {
+            for(ActionType actionType: actionTypes) {
+                List<Method> methods = getMethodsByAction(recordsPackage, actionType, clazz);
+                methods.forEach((method) -> interfaceMethodMap.put(method, clazz));
             }
         }
+
         return interfaceMethodMap;
     }
 
-    /**
-     * Invokes all the methods as defined in the mapping above.
-     * @param interfaceMethodMap
-     */
-    public static void setAllInterfaceMethods(Map<Method, Class<?>> interfaceMethodMap, SEntity sEntity) {
-        // Go through all the other attributes and deserialize
-        for (Map.Entry<Method, Class<?>> entry : interfaceMethodMap.entrySet()) {
-            try {
-                if(entry.getKey().getName().startsWith("set")) {
-                    entry.getKey().invoke(sEntity);
-                }
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-
-        }
-    }
 
     /**
      * Helper method to get all super classes or super interfaces of a given class/interface

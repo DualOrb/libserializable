@@ -8,12 +8,27 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.libserializable.api.Deserializer;
 import org.libserializable.api.Serializer;
 
-public final class LibSerializable extends JavaPlugin {
+import java.io.File;
+import java.lang.annotation.Annotation;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 
-    private String testData = "{\"EntityType\":{\"type\":\"ZOMBIE\"},\"Attributes\":{\"Ageable\":{\"age\":0,\"adult\":true},\"Damageable\":{\"health\":20.0,\"absorptionAmount\":0.0},\"Attributable\":{\"attributeMap\":{\"GENERIC_ARMOR_TOUGHNESS\":0.0,\"GENERIC_MAX_HEALTH\":20.0,\"GENERIC_MOVEMENT_SPEED\":0.23000000417232513,\"GENERIC_ATTACK_DAMAGE\":3.0,\"GENERIC_MAX_ABSORPTION\":0.0,\"GENERIC_KNOCKBACK_RESISTANCE\":0.0,\"GENERIC_ARMOR\":2.0,\"GENERIC_ATTACK_KNOCKBACK\":0.0,\"GENERIC_FOLLOW_RANGE\":35.0,\"ZOMBIE_SPAWN_REINFORCEMENTS\":0.011355051147791688}}}}";
+import org.libserializable.annotations.HandleInterface;
+
+public final class LibSerializable extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Load record classes
+        String basePackage = "org.libserializable.impl.interfaceRecords"; // Replace with your base package
+        try {
+            List<Class<?>> annotatedClasses = loadClassesWithAnnotation(basePackage, HandleInterface.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         // Test for development server
         World world = Bukkit.getWorlds().get(0);
         Zombie zombie = (Zombie) world.spawnEntity(world.getSpawnLocation(), EntityType.ZOMBIE);
@@ -29,5 +44,27 @@ public final class LibSerializable extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    public static List<Class<?>> loadClassesWithAnnotation(String basePackage, Class<?> annotationClass) throws Exception {
+        List<Class<?>> annotatedClasses = new ArrayList<>();
+        File baseDir = new File(basePackage.replace(".", "/"));
+        URLClassLoader classLoader = new URLClassLoader(new URL[]{baseDir.toURI().toURL()}, Thread.currentThread().getContextClassLoader());
+
+        File[] files = baseDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                String fileName = file.getName();
+                if (fileName.endsWith(".class")) {
+                    String className = fileName.substring(0, fileName.lastIndexOf('.'));
+                    Class<?> clazz = classLoader.loadClass(basePackage + "." + className);
+                    if (clazz.isAnnotationPresent((Class<? extends Annotation>) annotationClass)) {
+                        annotatedClasses.add(clazz);
+                    }
+                }
+            }
+        }
+
+        return annotatedClasses;
     }
 }
