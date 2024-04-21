@@ -33,35 +33,6 @@ public class SLivingEntity extends SEntity <LivingEntity> {
         super((LivingEntity) Objects.requireNonNull(location.getWorld()).spawnEntity(location, new Gson().fromJson(obj.get("EntityType"), SEntityType.class).type()));
     }
 
-    @Override
-    protected Map<Method, Class<?>> setInterfaceMethodMap() {
 
-        return generateInterfaceMethodMap(this.getEntity(), ActionType.SET, ActionType.GET);
-    }
-
-    @Override
-    protected JsonObject createJsonRepresentation() {
-        Gson gson = new Gson();
-
-        JsonObject serializedEntity = new JsonObject();
-        serializedEntity.add("EntityType", gson.toJsonTree(new SEntityType(entity.getType())));
-        JsonObject attributes = new JsonObject();
-
-        for (Map.Entry<Method, Class<?>> entry : interfaceMethodMap.entrySet()) {
-            try {
-                if (entry.getKey().getName().startsWith("get")) {
-
-                    Record record = (Record) entry.getKey().invoke(null, this.entity);
-                    JsonObject recordJson = gson.toJsonTree(record).getAsJsonObject();
-                    attributes.add(entry.getValue().getSimpleName(), recordJson);
-                }
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-        serializedEntity.add("Attributes", attributes);
-
-        return serializedEntity;
-    }
 
 }

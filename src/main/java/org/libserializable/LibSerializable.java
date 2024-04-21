@@ -38,25 +38,4 @@ public final class LibSerializable extends JavaPlugin {
         // Plugin shutdown logic
     }
 
-    public static List<Class<?>> loadClassesWithAnnotation(String basePackage, Class<?> annotationClass) throws Exception {
-        List<Class<?>> annotatedClasses = new ArrayList<>();
-        File baseDir = new File(basePackage.replace(".", "/"));
-        URLClassLoader classLoader = new URLClassLoader(new URL[]{baseDir.toURI().toURL()}, Thread.currentThread().getContextClassLoader());
-
-        File[] files = baseDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                String fileName = file.getName();
-                if (fileName.endsWith(".class")) {
-                    String className = fileName.substring(0, fileName.lastIndexOf('.'));
-                    Class<?> clazz = classLoader.loadClass(basePackage + "." + className);
-                    if (clazz.isAnnotationPresent((Class<? extends Annotation>) annotationClass)) {
-                        annotatedClasses.add(clazz);
-                    }
-                }
-            }
-        }
-
-        return annotatedClasses;
-    }
 }

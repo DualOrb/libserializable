@@ -9,7 +9,6 @@ import static org.libserializable.annotations.HandleInterface.AnnotationUtils.ge
 
 /**
  * A class handling all methods related to our implementation of reflection requiring handling of interfaces
- *
  * TODO - Maybe make this into a service with service locator pattern later on
  */
 public class InterfaceHandler {
@@ -41,11 +40,12 @@ public class InterfaceHandler {
 
     /**
      * Helper method to get all super classes or super interfaces of a given class/interface
-     * @param ogClass Class
+     * @param ogClass Class to search
      */
     public static Set<Class<?>> getAllExtendedOrImplementedTypesRecursively(Class<?> ogClass) {
         List<Class<?>> res = new ArrayList<>();
 
+        // Recursively search all superclasses / superinterfaces under "Object"
         do {
             res.add(ogClass);
 
