@@ -6,8 +6,10 @@ import org.bukkit.attribute.AttributeInstance;
 import org.libserializable.annotations.HandleInterface;
 import org.libserializable.util.enums.ActionType;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public record SAttributable(Map<Attribute, Double> attributeMap) {
 
@@ -26,8 +28,10 @@ public record SAttributable(Map<Attribute, Double> attributeMap) {
     }
 
     @HandleInterface(action = ActionType.SET, handles = Attributable.class)
-    public void setAttributable() {
-
+    public <T extends Attributable> void setAttributable(T entity) {
+        for(Map.Entry<Attribute, Double> entry : attributeMap.entrySet()) {
+            Objects.requireNonNull(entity.getAttribute(entry.getKey())).setBaseValue(entry.getValue());
+        }
     }
 
 }

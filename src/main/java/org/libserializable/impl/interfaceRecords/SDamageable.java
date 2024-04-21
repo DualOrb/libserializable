@@ -13,6 +13,7 @@ public record SDamageable(double health, double absorptionAmount) {
 
     @HandleInterface(action = ActionType.SET, handles = Damageable.class)
     public <T extends Damageable> void setDamageable(T entity) {
-
+        entity.setHealth(health);
+        entity.setAbsorptionAmount(absorptionAmount);
     }
 }

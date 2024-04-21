@@ -13,6 +13,6 @@ public record SNameable(String name) {
 
     @HandleInterface(action = ActionType.SET, handles = Nameable.class)
     public <T extends Nameable> void setNameable(T entity) {
-
+        if(name != null) entity.setCustomName(name);
     }
 }
